@@ -1,6 +1,7 @@
 package goval_test
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/tadjp/goval"
@@ -83,4 +84,37 @@ func TestGetAll(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleGetAll() {
+	type Member struct {
+		Name string
+	}
+
+	type Team struct {
+		Name    string
+		Members []*Member
+	}
+
+	team := Team{
+		Name: "TEAM-A",
+		Members: []*Member{
+			{
+				Name: "Alice",
+			},
+			{
+				Name: "Bob",
+			},
+		},
+	}
+	path, _ := goval.Parse("Name")
+	fmt.Println(goval.GetAll[string](&team, path)) // [TEAM-A]
+	path, _ = goval.Parse("Members[0].Name")
+	fmt.Println(goval.GetAll[string](&team, path)) // [Alice]
+	path, _ = goval.Parse("Members[*].Name")
+	fmt.Println(goval.GetAll[string](&team, path)) // [Alice Bob]
+	// Output:
+	// [TEAM-A]
+	// [Alice]
+	// [Alice Bob]
 }

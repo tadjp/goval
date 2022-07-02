@@ -1,5 +1,6 @@
 package goval
 
+// GetAll get field values
 func GetAll[T any](target any, path Path) []T {
 	s := make([]T, 0)
 	Each(target, path, func(v any, pathInfo PathInfo) {

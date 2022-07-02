@@ -1,7 +1,10 @@
-package goval
+package goval_test
 
 import (
+	"fmt"
+	"github.com/tadjp/goval"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -69,8 +72,8 @@ func TestSetFunc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path, _ := Parse(tt.args.path)
-			SetFunc[any](tt.args.target, path, func(v any, pathInfo PathInfo) any {
+			path, _ := goval.Parse(tt.args.path)
+			goval.SetFunc[any](tt.args.target, path, func(v any, pathInfo goval.PathInfo) any {
 				return tt.args.newVal
 			})
 			if !reflect.DeepEqual(tt.args.target, tt.want) {
@@ -117,11 +120,67 @@ func TestSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path, _ := Parse(tt.args.path)
-			Set(tt.args.target, path, tt.args.newVal)
+			path, _ := goval.Parse(tt.args.path)
+			goval.Set(tt.args.target, path, tt.args.newVal)
 			if !reflect.DeepEqual(tt.args.target, tt.want) {
 				t.Errorf("SetFunc() = %v, want %v", tt.args.target, tt.want)
 			}
 		})
 	}
+}
+
+func ExampleSet() {
+	type Member struct {
+		Name string
+	}
+	type Team struct {
+		Name    string
+		Members []*Member
+	}
+	team := Team{
+		Name: "TEAM-A",
+		Members: []*Member{
+			{
+				Name: "Alice",
+			},
+			{
+				Name: "Bob",
+			},
+		},
+	}
+	path, _ := goval.Parse("Name")
+	goval.Set[string](&team, path, "TEAM-B")
+	fmt.Println(team.Name) // TEAM-B
+	// Output:
+	// TEAM-B
+}
+
+func ExampleSetFunc() {
+	type Member struct {
+		Name string
+	}
+	type Team struct {
+		Name    string
+		Members []*Member
+	}
+	team := Team{
+		Name: "TEAM-A",
+		Members: []*Member{
+			{
+				Name: "Alice",
+			},
+			{
+				Name: "Bob",
+			},
+		},
+	}
+	path, _ := goval.Parse("Members[*].Name")
+	goval.SetFunc[string](&team, path, func(v string, pathInfo goval.PathInfo) string {
+		return strings.ToLower(v)
+	})
+	fmt.Println(team.Members[0].Name) // alice
+	fmt.Println(team.Members[1].Name) // bob
+	// Output:
+	// alice
+	// bob
 }
